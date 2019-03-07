@@ -8,7 +8,12 @@ import (
 	"strings"
 )
 
+var config configuration
 var targetHost = os.Getenv("PROXY_TARGET")
+
+func init() {
+	config = retreiveConfiguration()
+}
 
 func main() {
 	port := os.Getenv("PORT")
@@ -21,9 +26,10 @@ func main() {
 func auther(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := parseToken(r)
-		if validToken(token) {
-			next.ServeHTTP(w, r)
+		if !config.validator.authenticate(token, w) {
+			return
 		}
+		next.ServeHTTP(w, r)
 	})
 }
 
