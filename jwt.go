@@ -24,10 +24,17 @@ func (v jwtValidator) authenticate(token Token, w http.ResponseWriter) bool {
 		w.Header().Set("Location", v.idPURL.String())
 		w.WriteHeader(http.StatusFound)
 	}
-	jwt.Parse(token.token, v.keyLookup)
+	parsedToken, err := jwt.Parse(token.token, v.keyLookup)
+	if err != nil {
+		return false
+	}
+
+	if !parsedToken.Valid {
+		return false
+	}
 	return false
 }
 
 func (v jwtValidator) keyLookup(_ *jwt.Token) (interface{}, error) {
-	return v.secret, nil
+	return []byte(v.secret), nil
 }
